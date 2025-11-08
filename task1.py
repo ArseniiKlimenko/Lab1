@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 lynx = np.array([
 [209.70, 368.42], [157.63, 332.16], [118.82, 284.21], [80.95, 224.56], [43.08, 244.44], [20.36, 266.67], [-4.26, 293.57], [2.37, 263.16], [-20.36, 292.40], [-39.29, 299.42], [-21.30, 259.65],
@@ -58,5 +59,29 @@ shear(lynx, 2, 3)
 reflection(lynx, 1, 1)
 rotation(lynx, 80)
 
-#Test task2
+print("Test task2")
+print("Rotate(45), Shear(0.7, 0), Stretch(1.6, 0.7)")
+Stretch_matrix = np.array([[1.6, 0],
+                          [0, 0.7]])
+Shear_matrix = np.array([[1, 0.7],
+                          [0, 1]])
+
+rad_45 = np.radians(45)
+cos= np.cos(rad_45)
+sin = np.sin(rad_45)
+Rotation_matrix = np.array([[cos, -sin],
+                            [sin, cos]])
+
+A_composite_1 = Rotation_matrix @ Shear_matrix @ Stretch_matrix
+plot_2d(lynx, A_composite_1, "Composite1: Stretch - Shear - Rotate")
+print("Composite matrix 1:\n", A_composite_1)
+
+A_composite_2 = Stretch_matrix @ Shear_matrix @ Rotation_matrix
+plot_2d(lynx, A_composite_2, "Composite2: Rotate - Shear - Stretch")
+print("Composite matrix 2:\n", A_composite_2)
+
+A_composite_3 = Rotation_matrix @ Stretch_matrix @ Shear_matrix
+plot_2d(lynx, A_composite_3, "Composite3: Shear - Stretch - Rotate")
+print("Composite matrix 3:\n", A_composite_3)
+
 
