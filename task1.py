@@ -24,24 +24,31 @@ def plot_2d(X_copy, A, title):
     plt.legend()
     plt.show()
 
+    return transformed
+
 def stretch(X, a, b):
     X_copy = X.copy()
     A = np.array([[a, 0],
                   [0, b]])
-    return plot_2d(X_copy, A, f"Stretched by a={a}, b={b}")
+    print(f"\nStretch a={a}, b={b}")
+    transformed_matrix = plot_2d(X_copy, A, f"Stretched by a={a}, b={b}")
+    print(f"Result matrix:\n{transformed_matrix[:, :5]},")
 
 def shear(X, a, b):
     X_copy = X.copy()
     A = np.array([[1, a],
                   [b, 1]])
-
-    return plot_2d(X_copy, A, f"Shear by a={a}, b={b}")
+    print(f"\nShear a={a}, b={b}")
+    transformed_matrix = plot_2d(X_copy, A, f"Shear by a={a}, b={b}")
+    print(f"Result matrix:\n{transformed_matrix[:, :5]},")
 
 def reflection(X, a, b):
     X_copy = X.copy()
     A = (1 / (a**2 + b**2)) * np.array([[a**2 - b**2, 2 * a * b],
                                       [2 * a * b, b**2 - a**2]])
-    plot_2d(X_copy, A, f"Reflection by a={a}, b={b}")
+    print(f"\nReflection by a={a}, b={b} ")
+    transformed_matrix = plot_2d(X_copy, A, f"Reflection by a={a}, b={b}")
+    print(f"Result matrix:\n{transformed_matrix[:, :5]},")
 
 def rotation(X, degrees):
     X_copy = X.copy()
@@ -50,8 +57,9 @@ def rotation(X, degrees):
     sin = np.sin(radians)
     A = np.array([[cos, -sin],
                   [sin, cos]])
-
-    plot_2d(X_copy, A, f"Rotation by degrees={degrees}")
+    print(f"\nRotation degrees={degrees}")
+    transformed_matrix = plot_2d(X_copy, A, f"Rotation by degrees={degrees}")
+    print(f"Result matrix:\n{transformed_matrix[:, :5]},")
 
 #Test task1
 stretch(lynx, 2, 3)
@@ -72,16 +80,87 @@ sin = np.sin(rad_45)
 Rotation_matrix = np.array([[cos, -sin],
                             [sin, cos]])
 
-A_composite_1 = Rotation_matrix @ Shear_matrix @ Stretch_matrix
-plot_2d(lynx, A_composite_1, "Composite1: Stretch - Shear - Rotate")
-print("Composite matrix 1:\n", A_composite_1)
+print("\nStretch - Shear - Rotate")
 
-A_composite_2 = Stretch_matrix @ Shear_matrix @ Rotation_matrix
-plot_2d(lynx, A_composite_2, "Composite2: Rotate - Shear - Stretch")
-print("Composite matrix 2:\n", A_composite_2)
+print("\nStretch\n")
+matrix1 = plot_2d(lynx, Stretch_matrix, "1. Stretch")
+print(f"New lynx {matrix1[:, :5]}")
 
-A_composite_3 = Rotation_matrix @ Stretch_matrix @ Shear_matrix
-plot_2d(lynx, A_composite_3, "Composite3: Shear - Stretch - Rotate")
-print("Composite matrix 3:\n", A_composite_3)
+print("\nShear\n")
+matrix2 = plot_2d(matrix1, Shear_matrix, "1.2: Stretch - Shear")
+print(f"New lynx {matrix2[:, :5]}")
+
+print("\nRotation\n")
+matrix3 = plot_2d(matrix2, Rotation_matrix, "1.3 (Final): Stretch - Shear - Rotate")
+print(f"New lynx {matrix3[:, :5]}")
+
+
+print("\nRotate - Shear - Stretch")
+
+print("\nRotation\n")
+matrix1_combo2 = plot_2d(lynx, Rotation_matrix, "2.1: Rotate")
+print(f"New lynx {matrix1_combo2[:, :5]}")
+
+print("\nShear\n")
+matrix2_combo2 = plot_2d(matrix1_combo2, Shear_matrix, "2.2: Rotate - Shear")
+print(f"New lynx {matrix2_combo2[:, :5]}")
+
+print("\nStretch\n")
+matrix3_combo2 = plot_2d(matrix2_combo2, Stretch_matrix, "2.3 (Final): Rotate - Shear - Stretch")
+print(f"New lynx {matrix3_combo2[:, :5]}")
+
+
+print("\nShear - Stretch - Rotate")
+
+print("\nShear\n")
+matrix1_combo3 = plot_2d(lynx, Shear_matrix, "3.1: Shear")
+print(f"New lynx {matrix1_combo3[:, :5]}")
+
+print("\nStretch\n")
+matrix2_combo3 = plot_2d(matrix1_combo3, Stretch_matrix, "3.2: Shear - Stretch")
+print(f"New lynx {matrix2_combo3[:, :5]}")
+
+print("\nRotation\n")
+matrix3_combo3 = plot_2d(matrix2_combo3, Rotation_matrix, "3.3 (Final): Shear - Stretch - Rotate")
+print(f"New lynx {matrix3_combo3[:, :5]}")
+
+
+#Reading the .off file
+def read_off(filename: str):
+    with open(filename, 'r') as f:
+        if 'OFF' != f.readline().strip():
+            raise ValueError('Not a valid OFF header')
+        n_verts, n_faces, _ = map(int, f.readline().strip().split())
+        verts = [list(map(float, f.readline().strip().split())) for i in range(n_verts)]
+        faces = [list(map(int, f.readline().strip().split()[1:])) for i in range(n_faces)]
+    return np.array(verts), faces
+
+def plot_off(vertices, faces, title):
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    mesh = Poly3DCollection([vertices[face] for face in faces], alpha=0.3, edgecolor='k')
+    ax.add_collection3d(mesh)
+    ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2], s=2, c='r')
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    ax.set_title(title)
+    max_range = np.array([vertices[:, 0].max() - vertices[:, 0].min(),
+                          vertices[:, 1].max() - vertices[:, 1].min(),
+                          vertices[:, 2].max() - vertices[:, 2].min()]).max() / 2.0
+
+    mid_x = (vertices[:, 0].max() + vertices[:, 0].min()) * 0.5
+    mid_y = (vertices[:, 1].max() + vertices[:, 1].min()) * 0.5
+    mid_z = (vertices[:, 2].max() + vertices[:, 2].min()) * 0.5
+    ax.set_xlim(mid_x - max_range, mid_x + max_range)
+    ax.set_ylim(mid_y - max_range, mid_y + max_range)
+    ax.set_zlim(mid_z - max_range, mid_z + max_range)
+
+    plt.show()
+
+file_path_3d = "toilet_0007.off"
+car_vertices, car_faces = read_off(file_path_3d)
+plot_off(car_vertices, car_faces, "Original Model")
+
 
 
