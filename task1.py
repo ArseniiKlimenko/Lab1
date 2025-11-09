@@ -59,7 +59,7 @@ def rotation(X, degrees):
                   [sin, cos]])
     print(f"\nRotation degrees={degrees}")
     transformed_matrix = plot_2d(X_copy, A, f"Rotation by degrees={degrees}")
-    print(f"Result matrix:\n{transformed_matrix[:, :5]},")
+    print(f"Result matrix:\n{transformed_matrix[:, :5]},\n")
 
 #Test task1
 stretch(lynx, 2, 3)
@@ -122,7 +122,7 @@ print(f"New lynx {matrix2_combo3[:, :5]}")
 
 print("\nRotation\n")
 matrix3_combo3 = plot_2d(matrix2_combo3, Rotation_matrix, "3.3 (Final): Shear - Stretch - Rotate")
-print(f"New lynx {matrix3_combo3[:, :5]}")
+print(f"New lynx {matrix3_combo3[:, :5]}\n")
 
 
 #Reading the .off file
@@ -135,11 +135,13 @@ def read_off(filename: str):
         faces = [list(map(int, f.readline().strip().split()[1:])) for i in range(n_faces)]
     return np.array(verts), faces
 
-def plot_off(vertices, faces, title):
+def plot_off(vertices, transformed, faces, title):
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111, projection='3d')
-    mesh = Poly3DCollection([vertices[face] for face in faces], alpha=0.3, edgecolor='k')
+    mesh = Poly3DCollection([vertices[face] for face in faces], alpha=0.2, edgecolor='black')
     ax.add_collection3d(mesh)
+    mesh_transformed = Poly3DCollection([transformed[face] for face in faces], alpha=0.4, edgecolor='blue')
+    ax.add_collection3d(mesh_transformed)
     ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2], s=2, c='r')
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
@@ -158,9 +160,83 @@ def plot_off(vertices, faces, title):
 
     plt.show()
 
-file_path_3d = "toilet_0007.off"
-car_vertices, car_faces = read_off(file_path_3d)
-plot_off(car_vertices, car_faces, "Original Model")
+def rotate_xy_3d(X, degrees):
+    X_copy = X.copy()
+    radians = np.radians(degrees)
+    cos = np.cos(radians)
+    sin = np.sin(radians)
+    A = np.array([[cos, -sin, 0],
+                  [sin, cos, 0],
+                  [0, 0, 0]])
+
+    transformed = (A @ X_copy.T).T
+    return transformed, A
+
+def rotate_yz_3d(X, degrees):
+    X_copy = X.copy()
+    radians = np.radians(degrees)
+    cos = np.cos(radians)
+    sin = np.sin(radians)
+    A = np.array([[1, 0, 0],
+                  [0, cos, -sin],
+                  [0, sin, cos]])
+    transformed = (A @ X_copy.T).T
+    return transformed, A
+
+def rotate_xz_3d(X, degrees):
+    X_copy = X.copy()
+    radians = np.radians(degrees)
+    cos = np.cos(radians)
+    sin = np.sin(radians)
+    A = np.array([[cos, 0, -sin],
+                    [0, 1, 0],
+                  [sin, 0, cos]])
+    transformed = (A @ X_copy.T).T
+    return transformed, A
+
+file_path = "toilet_0007.off"
+car_vertices, car_faces = read_off(file_path)
+plot_off(car_vertices, car_vertices, car_faces, f"Original ({file_path})")
+
+print("Task 3")
+print("XY rotation(90 degrees)")
+rotated_car_xy, A = rotate_xy_3d(car_vertices, 90)
+print(f"Rotation xy matrix:\n {A}")
+plot_off(car_vertices, rotated_car_xy, car_faces, "Rotation xy")
+
+print("YZ rotation(90 degrees)")
+rotated_car_yz, A = rotate_yz_3d(car_vertices, 90)
+print(f"Rotation yz matrix:\n {A}")
+plot_off(car_vertices, rotated_car_yz, car_faces, "Rotation yz")
+
+print("XZ rotation(90 degrees)")
+rotated_car_xz, A = rotate_xz_3d(car_vertices, 90)
+print(f"Rotation xz matrix:\n {A}")
+plot_off(car_vertices, rotated_car_xz, car_faces, "Rotation xz")
+
+print("Task 4")
+
+print("\n4.1: Matrix XY(30)")
+change1, A1 = rotate_xy_3d(car_vertices, 30)
+print(f"Rotation xy matrix:\n {A1}")
+plot_off(car_vertices, change1, car_faces, "Original - Rotation XY(30)")
+
+print("\n4.2: Matrix YZ(45)")
+change2, A2 = rotate_yz_3d(change1, 45)
+print(f"Rotation yz matrix:\n {A2}")
+plot_off(change1, change2, car_faces, "Original - Rotation XY(30) - Rotation YZ(45)")
+
+print("\n4.3: Matrix XZ (60)")
+change3, A3 = rotate_xz_3d(change2, 60)
+print(f"Rotation xz matrix:\n {A3}")
+plot_off(change2, change3, car_faces, "Original - Rotation XY(30) - Rotation YZ(45) - Rotation XZ(60)")
+
+A_composite = A3 @ A2 @ A1
+plot_off(car_vertices, change3, car_faces, "Final result")
+print(f"Final composite matrix:\n {A_composite}")
+
+
+
 
 
 
