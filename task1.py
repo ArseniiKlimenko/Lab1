@@ -142,7 +142,6 @@ def plot_off(vertices, transformed, faces, title):
     ax.add_collection3d(mesh)
     mesh_transformed = Poly3DCollection([transformed[face] for face in faces], alpha=0.4, edgecolor='blue')
     ax.add_collection3d(mesh_transformed)
-    ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2], s=2, c='r')
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
@@ -167,7 +166,7 @@ def rotate_xy_3d(X, degrees):
     sin = np.sin(radians)
     A = np.array([[cos, -sin, 0],
                   [sin, cos, 0],
-                  [0, 0, 0]])
+                  [0, 0, 1]])
 
     transformed = (A @ X_copy.T).T
     return transformed, A
